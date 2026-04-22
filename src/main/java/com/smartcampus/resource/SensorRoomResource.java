@@ -124,7 +124,7 @@ public class SensorRoomResource {
     @PUT
     @Path("/{roomId}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateRoom(@PathParam("roomId") String roomId, SensorRoom updatedData) {
+    public Response updateRoom(@PathParam("roomId") String roomId, RoomUpdateRequest updatedData) {
         SensorRoom existingRoom = campusRegistry.getRoomById(roomId);
 
         if (existingRoom == null) {
@@ -138,8 +138,8 @@ public class SensorRoomResource {
         // Selectively update only mutable fields
         if (updatedData.getName()     != null) existingRoom.setName(updatedData.getName());
         if (updatedData.getLocation() != null) existingRoom.setLocation(updatedData.getLocation());
-        existingRoom.setFloor(updatedData.getFloor());
-        existingRoom.setCapacity(updatedData.getCapacity());
+        if (updatedData.getFloor()    != null) existingRoom.setFloor(updatedData.getFloor());
+        if (updatedData.getCapacity() != null) existingRoom.setCapacity(updatedData.getCapacity());
 
         return Response.ok(existingRoom).build();
     }
@@ -193,5 +193,49 @@ public class SensorRoomResource {
         confirmation.put("deletedRoomName", targetRoom.getName());
 
         return Response.ok(confirmation).build();
+    }
+
+    /**
+     * Dedicated partial-update payload model for PUT /rooms/{roomId}.
+     * Uses boxed numeric types so omitted fields remain null instead of
+     * defaulting to zero during JSON deserialisation.
+     */
+    public static class RoomUpdateRequest {
+        private String name;
+        private String location;
+        private Integer floor;
+        private Integer capacity;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getLocation() {
+            return location;
+        }
+
+        public void setLocation(String location) {
+            this.location = location;
+        }
+
+        public Integer getFloor() {
+            return floor;
+        }
+
+        public void setFloor(Integer floor) {
+            this.floor = floor;
+        }
+
+        public Integer getCapacity() {
+            return capacity;
+        }
+
+        public void setCapacity(Integer capacity) {
+            this.capacity = capacity;
+        }
     }
 }

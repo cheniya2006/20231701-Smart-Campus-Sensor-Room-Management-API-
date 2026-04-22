@@ -14,6 +14,7 @@ import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -129,7 +130,7 @@ public class SensorResource {
         // Build a server-managed sensor object with a generated UUID
         Sensor newDevice = new Sensor(payload.getRoomId(), payload.getType(), payload.getName());
         if (payload.getStatus() != null && !payload.getStatus().isBlank()) {
-            newDevice.setStatus(payload.getStatus());
+            newDevice.setStatus(normalizeAndValidateStatus(payload.getStatus()));
         }
         campusRegistry.addSensor(newDevice);
 
@@ -170,7 +171,9 @@ public class SensorResource {
         // Apply selective field updates
         if (updatedData.getName()   != null) existingDevice.setName(updatedData.getName());
         if (updatedData.getType()   != null) existingDevice.setType(updatedData.getType());
-        if (updatedData.getStatus() != null) existingDevice.setStatus(updatedData.getStatus());
+        if (updatedData.getStatus() != null) {
+            existingDevice.setStatus(normalizeAndValidateStatus(updatedData.getStatus()));
+        }
 
         // Handle room reassignment: update both the old and new parent rooms' lists
         if (updatedData.getRoomId() != null && !updatedData.getRoomId().equals(existingDevice.getRoomId())) {
@@ -247,5 +250,27 @@ public class SensorResource {
     @Path("/{sensorId}/readings")
     public SensorReadingResource locateReadingsSubResource(@PathParam("sensorId") String sensorId) {
         return new SensorReadingResource(sensorId);
+    }
+
+    /**
+     * Accept only the coursework-defined status domain.
+     */
+    private String normalizeAndValidateStatus(String rawStatus) {
+        String normalized = rawStatus == null ? "" : rawStatus.trim().toUpperCase(Locale.ROOT);
+        if ("ACTIVE".equals(normalized) || "MAINTENANCE".equals(normalized) || "OFFLINE".equals(normalized)) {
+            return normalized;
+        }
+
+        ErrorResponse badRequest = new ErrorResponse(
+                400,
+                "Bad Request",
+                "Invalid sensor status '" + rawStatus + "'. Allowed values: ACTIVE, MAINTENANCE, OFFLINE."
+        );
+        throw new WebApplicationException(
+                Response.status(Response.Status.BAD_REQUEST)
+                        .entity(badRequest)
+                        .type(MediaType.APPLICATION_JSON)
+                        .build()
+        );
     }
 }

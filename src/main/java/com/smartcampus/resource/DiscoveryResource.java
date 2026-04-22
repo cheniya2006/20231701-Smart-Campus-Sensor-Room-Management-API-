@@ -73,7 +73,7 @@ public class DiscoveryResource {
 
         // Runtime server information
         Map<String, String> runtimeInfo = new LinkedHashMap<>();
-        runtimeInfo.put("baseUri",  "http://localhost:8080/api/v1");
+        runtimeInfo.put("baseUri",  "http://localhost:8080/smart-campus-sensor-api/api/v1");
         runtimeInfo.put("protocol", "HTTP/1.1");
         runtimeInfo.put("status",   "operational");
         apiManifest.put("server", runtimeInfo);

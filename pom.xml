@@ -7,10 +7,10 @@
     <groupId>com.smartcampus</groupId>
     <artifactId>smart-campus-sensor-api</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
 
     <name>Smart Campus Sensor API</name>
-    <description>A RESTful API for managing campus sensor rooms, sensors, and readings using JAX-RS (Jersey) with Grizzly embedded server.</description>
+    <description>A RESTful API for managing campus sensor rooms, sensors, and readings using JAX-RS (Jersey) deployed on Tomcat.</description>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -20,10 +20,10 @@
     </properties>
 
     <dependencies>
-        <!-- Jersey Core + Grizzly Container -->
+        <!-- Jersey Servlet container (Tomcat deployment) -->
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
-            <artifactId>jersey-container-grizzly2-http</artifactId>
+            <artifactId>jersey-container-servlet-core</artifactId>
             <version>${jersey.version}</version>
         </dependency>
 
@@ -40,9 +40,18 @@
             <artifactId>jersey-hk2</artifactId>
             <version>${jersey.version}</version>
         </dependency>
+
+        <!-- Provided by Tomcat at runtime -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>4.0.1</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
+        <finalName>smart-campus-sensor-api</finalName>
         <plugins>
             <!-- Compiler Plugin -->
             <plugin>
@@ -55,26 +64,14 @@
                 </configuration>
             </plugin>
 
-            <!-- Shade Plugin: create a fat JAR with all dependencies -->
+            <!-- WAR Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.1</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.smartcampus.Main</mainClass>
-                                </transformer>
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.4.0</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                </configuration>
             </plugin>
         </plugins>
     </build>

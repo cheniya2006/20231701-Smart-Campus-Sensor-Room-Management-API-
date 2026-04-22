@@ -1,6 +1,6 @@
 # Smart Campus Sensor Management API
 
-A production-grade RESTful API built with **JAX-RS (Jersey 2.41)** and an embedded **Grizzly HTTP server** for managing campus IoT infrastructure — rooms, sensor devices, and live measurement data. All data is held entirely in-memory using thread-safe `ConcurrentHashMap` structures; no database is required.
+A production-grade RESTful API built with **JAX-RS (Jersey 2.41)** and deployed on **Apache Tomcat** for managing campus IoT infrastructure — rooms, sensor devices, and live measurement data. All data is held entirely in-memory using thread-safe `ConcurrentHashMap` structures; no database is required.
 
 ---
 
@@ -40,7 +40,7 @@ Key design decisions:
 |-------------------|-----------------------------------|
 | Language          | Java 17                           |
 | API Framework     | JAX-RS 2.1 (Jersey 2.41)         |
-| Embedded Server   | Grizzly HTTP Server               |
+| Servlet Container | Apache Tomcat (WAR deployment)    |
 | JSON Processing   | Jackson (via jersey-media-json-jackson) |
 | Build Tool        | Apache Maven 3.6+                 |
 | Data Storage      | `ConcurrentHashMap` (in-memory)   |
@@ -51,8 +51,8 @@ Key design decisions:
 
 ```
 src/main/java/com/smartcampus/
-├── Main.java                                    # Grizzly server bootstrap + entry point
-├── SmartCampusApplication.java                  # @ApplicationPath("/api/v1")
+├── SmartCampusApplication.java                  # @ApplicationPath("/api/v1") (JAX-RS Application)
+├── SmartCampusResourceConfig.java               # Jersey ResourceConfig (Tomcat servlet bootstrap)
 ├── model/
 │   ├── SensorRoom.java                          # Campus room entity (POJO)
 │   ├── Sensor.java                              # Sensor device entity (POJO)
@@ -76,6 +76,10 @@ src/main/java/com/smartcampus/
 │   └── GenericExceptionMapper.java              # 500 catch-all safety net
 └── filter/
     └── LoggingFilter.java                       # Request + response logging
+
+src/main/webapp/
+└── WEB-INF/
+    └── web.xml                                  # Tomcat deployment descriptor (Jersey servlet mapping)
 ```
 
 ---
@@ -86,6 +90,7 @@ src/main/java/com/smartcampus/
 
 - **Java 17** or later — verify with `java -version`
 - **Apache Maven 3.6+** — verify with `mvn -version`
+- **Apache Tomcat 9.x** (recommended for `javax.*` APIs)
 
 ### Step 1 — Clone the Repository
 
@@ -94,27 +99,25 @@ git clone https://github.com/YOUR_USERNAME/smart-campus-sensor-api.git
 cd smart-campus-sensor-api
 ```
 
-### Step 2 — Build the Fat JAR
+### Step 2 — Build the WAR (Tomcat)
 
 ```bash
 mvn clean package
 ```
 
-This produces `target/smart-campus-sensor-api-1.0-SNAPSHOT.jar` — a self-contained executable JAR with all dependencies included.
+This produces `target/smart-campus-sensor-api.war`.
 
-### Step 3 — Run the Server
+### Step 3 — Deploy to Tomcat
 
-```bash
-java -jar target/smart-campus-sensor-api-1.0-SNAPSHOT.jar
-```
+Copy `target/smart-campus-sensor-api.war` into Tomcat’s `webapps/` folder, then start Tomcat.
 
 ### Step 4 — Verify the Server is Running
 
 ```bash
-curl http://localhost:8080/api/v1
+curl http://localhost:8080/smart-campus-sensor-api/api/v1
 ```
 
-You should receive a JSON discovery document. Press **Enter** in the terminal to stop the server gracefully.
+You should receive a JSON discovery document.
 
 ---
 
@@ -162,12 +165,12 @@ You should receive a JSON discovery document. Press **Enter** in the terminal to
 
 **1. Discover the API and list available resources:**
 ```bash
-curl -s http://localhost:8080/api/v1 | python3 -m json.tool
+curl -s http://localhost:8080/smart-campus-sensor-api/api/v1 | python3 -m json.tool
 ```
 
 **2. Create a new campus room and capture its ID:**
 ```bash
-curl -s -X POST http://localhost:8080/api/v1/rooms \
+curl -s -X POST http://localhost:8080/smart-campus-sensor-api/api/v1/rooms \
   -H "Content-Type: application/json" \
   -d '{"name":"Robotics Lab","location":"Block D, Level 2","floor":2,"capacity":25}' \
   | python3 -m json.tool
@@ -175,7 +178,7 @@ curl -s -X POST http://localhost:8080/api/v1/rooms \
 
 **3. Register a temperature sensor in the newly created room:**
 ```bash
-curl -s -X POST http://localhost:8080/api/v1/sensors \
+curl -s -X POST http://localhost:8080/smart-campus-sensor-api/api/v1/sensors \
   -H "Content-Type: application/json" \
   -d '{"name":"Lab Temp Probe D2-01","type":"Temperature","roomId":"PASTE_ROOM_ID_HERE"}' \
   | python3 -m json.tool
@@ -183,12 +186,12 @@ curl -s -X POST http://localhost:8080/api/v1/sensors \
 
 **4. Filter sensors by type (e.g. CO2 monitors only):**
 ```bash
-curl -s "http://localhost:8080/api/v1/sensors?type=CO2" | python3 -m json.tool
+curl -s "http://localhost:8080/smart-campus-sensor-api/api/v1/sensors?type=CO2" | python3 -m json.tool
 ```
 
 **5. Post a new measurement reading to a sensor:**
 ```bash
-curl -s -X POST http://localhost:8080/api/v1/sensors/PASTE_SENSOR_ID_HERE/readings \
+curl -s -X POST http://localhost:8080/smart-campus-sensor-api/api/v1/sensors/PASTE_SENSOR_ID_HERE/readings \
   -H "Content-Type: application/json" \
   -d '{"value":22.7,"unit":"degC"}' \
   | python3 -m json.tool
@@ -196,22 +199,22 @@ curl -s -X POST http://localhost:8080/api/v1/sensors/PASTE_SENSOR_ID_HERE/readin
 
 **6. Retrieve the full reading history for a sensor:**
 ```bash
-curl -s http://localhost:8080/api/v1/sensors/PASTE_SENSOR_ID_HERE/readings \
+curl -s http://localhost:8080/smart-campus-sensor-api/api/v1/sensors/PASTE_SENSOR_ID_HERE/readings \
   | python3 -m json.tool
 ```
 
 **7. Attempt to delete a room that still has sensors (expect 409 Conflict):**
 ```bash
-curl -s -X DELETE http://localhost:8080/api/v1/rooms/PASTE_ROOM_ID_HERE \
+curl -s -X DELETE http://localhost:8080/smart-campus-sensor-api/api/v1/rooms/PASTE_ROOM_ID_HERE \
   | python3 -m json.tool
 ```
 
 **8. Attempt to post a reading to a MAINTENANCE sensor (expect 403 Forbidden):**
 ```bash
 # The seeded data includes one sensor in MAINTENANCE state — fetch its ID first:
-curl -s "http://localhost:8080/api/v1/sensors?type=Temperature" | python3 -m json.tool
+curl -s "http://localhost:8080/smart-campus-sensor-api/api/v1/sensors?type=Temperature" | python3 -m json.tool
 # Then post a reading to the MAINTENANCE sensor ID:
-curl -s -X POST http://localhost:8080/api/v1/sensors/MAINTENANCE_SENSOR_ID/readings \
+curl -s -X POST http://localhost:8080/smart-campus-sensor-api/api/v1/sensors/MAINTENANCE_SENSOR_ID/readings \
   -H "Content-Type: application/json" \
   -d '{"value":55.0,"unit":"degC"}' \
   | python3 -m json.tool
