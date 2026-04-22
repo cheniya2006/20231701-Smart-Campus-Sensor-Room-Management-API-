@@ -3,8 +3,10 @@ package com.smartcampus.resource;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -31,7 +33,7 @@ public class DiscoveryResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response describeApi() {
+    public Response describeApi(@Context UriInfo uriInfo) {
         Map<String, Object> apiManifest = new LinkedHashMap<>();
 
         // Core API identity
@@ -73,7 +75,8 @@ public class DiscoveryResource {
 
         // Runtime server information
         Map<String, String> runtimeInfo = new LinkedHashMap<>();
-        runtimeInfo.put("baseUri",  "http://localhost:8080/smart-campus-sensor-api/api/v1");
+        String runtimeBaseUri = uriInfo.getAbsolutePath().toString();
+        runtimeInfo.put("baseUri", runtimeBaseUri);
         runtimeInfo.put("protocol", "HTTP/1.1");
         runtimeInfo.put("status",   "operational");
         apiManifest.put("server", runtimeInfo);

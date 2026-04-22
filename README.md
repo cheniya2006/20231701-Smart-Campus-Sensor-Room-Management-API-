@@ -51,8 +51,7 @@ Key design decisions:
 
 ```
 src/main/java/com/smartcampus/
-├── SmartCampusApplication.java                  # @ApplicationPath("/api/v1") (JAX-RS Application)
-├── SmartCampusResourceConfig.java               # Jersey ResourceConfig (Tomcat servlet bootstrap)
+├── SmartCampusResourceConfig.java               # @ApplicationPath("/api/v1") + Jersey ResourceConfig
 ├── model/
 │   ├── SensorRoom.java                          # Campus room entity (POJO)
 │   ├── Sensor.java                              # Sensor device entity (POJO)
