@@ -42,6 +42,7 @@ public class SensorRoom {
 
     /**
      * Full constructor used internally to create a server-managed room entity.
+     * Generates a random UUID for the room ID.
      *
      * @param name     display name of the room
      * @param location physical location string
@@ -50,6 +51,26 @@ public class SensorRoom {
      */
     public SensorRoom(String name, String location, int floor, int capacity) {
         this.id           = UUID.randomUUID().toString();
+        this.name         = name;
+        this.location     = location;
+        this.floor        = floor;
+        this.capacity     = capacity;
+        this.sensorIds    = new ArrayList<>();
+        this.registeredAt = LocalDateTime.now().toString();
+    }
+
+    /**
+     * Fixed-ID constructor used exclusively by DataStore.seedInitialData()
+     * to ensure seeded rooms always have the same stable UUID across restarts.
+     *
+     * @param fixedId  the hardcoded UUID to assign
+     * @param name     display name of the room
+     * @param location physical location string
+     * @param floor    floor level within the building
+     * @param capacity maximum permitted occupancy
+     */
+    public SensorRoom(String fixedId, String name, String location, int floor, int capacity) {
+        this.id           = fixedId;
         this.name         = name;
         this.location     = location;
         this.floor        = floor;
