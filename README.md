@@ -340,4 +340,4 @@ Using a JAX-RS filter for logging is superior to inserting `Logger.info()` calls
 
 ---
 
-*Report prepared as part of 5COSC022W Client-Server Architectures Coursework — University of Westminster, 2025/26.*
+
