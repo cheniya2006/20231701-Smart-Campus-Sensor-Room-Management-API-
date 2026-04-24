@@ -45,6 +45,7 @@ public class Sensor {
 
     /**
      * Full constructor used internally to create a server-managed sensor entity.
+     * Generates a random UUID for the sensor ID.
      *
      * @param roomId UUID of the room where the sensor is installed
      * @param type   device category string
@@ -52,6 +53,25 @@ public class Sensor {
      */
     public Sensor(String roomId, String type, String name) {
         this.id           = UUID.randomUUID().toString();
+        this.roomId       = roomId;
+        this.type         = type;
+        this.name         = name;
+        this.status       = "ACTIVE";
+        this.currentValue = 0.0;
+        this.registeredAt = LocalDateTime.now().toString();
+    }
+
+    /**
+     * Fixed-ID constructor used exclusively by DataStore.seedInitialData()
+     * to ensure seeded sensors always have the same stable UUID across restarts.
+     *
+     * @param fixedId UUID of the room where the sensor is installed
+     * @param roomId  UUID of the room where the sensor is installed
+     * @param type    device category string
+     * @param name    descriptive display label
+     */
+    public Sensor(String fixedId, String roomId, String type, String name) {
+        this.id           = fixedId;
         this.roomId       = roomId;
         this.type         = type;
         this.name         = name;
