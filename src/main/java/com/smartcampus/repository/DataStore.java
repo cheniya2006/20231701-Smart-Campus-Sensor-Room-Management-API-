@@ -41,6 +41,21 @@ public class DataStore {
      */
     private final Map<String, List<SensorReading>> measurementLog = new ConcurrentHashMap<>();
 
+    // =========================================================================
+    // Fixed Seed UUIDs — these never change across restarts
+    // =========================================================================
+
+    // Room IDs
+    public static final String ROOM_ID_LAB_WEST    = "aaaa0001-0000-0000-0000-000000000001";
+    public static final String ROOM_ID_AUDITORIUM  = "aaaa0001-0000-0000-0000-000000000002";
+    public static final String ROOM_ID_DATA_CENTER = "aaaa0001-0000-0000-0000-000000000003";
+
+    // Sensor IDs
+    public static final String SENSOR_ID_TEMP_LAB     = "bbbb0002-0000-0000-0000-000000000001";
+    public static final String SENSOR_ID_CO2_LAB      = "bbbb0002-0000-0000-0000-000000000002";
+    public static final String SENSOR_ID_OCC_AUD      = "bbbb0002-0000-0000-0000-000000000003";
+    public static final String SENSOR_ID_TEMP_DC      = "bbbb0002-0000-0000-0000-000000000004";
+
     /** Prevent external instantiation — use getInstance() instead. */
     private DataStore() {
         seedInitialData();
@@ -64,23 +79,24 @@ public class DataStore {
     /**
      * Populates the registry with realistic demonstration data so that
      * the API returns meaningful responses immediately after start-up.
+     * Uses fixed UUIDs so IDs are stable across server restarts.
      */
     private void seedInitialData() {
 
         // --- Rooms -----------------------------------------------------------
-        SensorRoom labWest    = new SensorRoom("West Wing Computing Lab",   "Block C, Level 1",  1, 40);
-        SensorRoom auditorium = new SensorRoom("Main Auditorium",           "Block A, Ground",   0, 350);
-        SensorRoom dataCenter = new SensorRoom("Network Operations Centre", "Block B, Basement", 0, 8);
+        SensorRoom labWest    = new SensorRoom(ROOM_ID_LAB_WEST,    "West Wing Computing Lab",   "Block C, Level 1",  1, 40);
+        SensorRoom auditorium = new SensorRoom(ROOM_ID_AUDITORIUM,  "Main Auditorium",           "Block A, Ground",   0, 350);
+        SensorRoom dataCenter = new SensorRoom(ROOM_ID_DATA_CENTER, "Network Operations Centre", "Block B, Basement", 0, 8);
 
         roomRegistry.put(labWest.getId(),    labWest);
         roomRegistry.put(auditorium.getId(), auditorium);
         roomRegistry.put(dataCenter.getId(), dataCenter);
 
         // --- Sensors ---------------------------------------------------------
-        Sensor tempLabWest   = new Sensor(labWest.getId(),    "Temperature", "Ambient Temp Monitor CL1-01");
-        Sensor co2LabWest    = new Sensor(labWest.getId(),    "CO2",         "Air Quality Probe CL1-02");
-        Sensor occAuditorium = new Sensor(auditorium.getId(), "Occupancy",   "Crowd Density Tracker A-01");
-        Sensor tempDC        = new Sensor(dataCenter.getId(), "Temperature", "Server Hall Thermal Guard B-01");
+        Sensor tempLabWest   = new Sensor(SENSOR_ID_TEMP_LAB, labWest.getId(),    "Temperature", "Ambient Temp Monitor CL1-01");
+        Sensor co2LabWest    = new Sensor(SENSOR_ID_CO2_LAB,  labWest.getId(),    "CO2",         "Air Quality Probe CL1-02");
+        Sensor occAuditorium = new Sensor(SENSOR_ID_OCC_AUD,  auditorium.getId(), "Occupancy",   "Crowd Density Tracker A-01");
+        Sensor tempDC        = new Sensor(SENSOR_ID_TEMP_DC,  dataCenter.getId(), "Temperature", "Server Hall Thermal Guard B-01");
         tempDC.setStatus("MAINTENANCE"); // Offline for scheduled servicing — useful for 403 demo
 
         sensorRegistry.put(tempLabWest.getId(),   tempLabWest);
